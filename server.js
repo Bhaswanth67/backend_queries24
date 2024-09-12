@@ -17,10 +17,13 @@ if (!mongoURI) {
     console.log('MONGO_URI:', mongoURI); // Debug log to verify the variable
 }
 
-// Connect to MongoDB
-mongoose.connect(mongoURI, { useNewUrlParser: true, useUnifiedTopology: true })
-    .then(() => console.log('MongoDB connected'))
-    .catch(err => console.error('MongoDB connection error:', err));
+
+mongoose.connect(mongoURI)
+    .then(() => console.log('MongoDB connected successfully'))
+    .catch(err => {
+        console.error('MongoDB connection error:', err);
+        process.exit(1); // Exit the process if MongoDB connection fails
+    });
 
 // Middleware
 app.use(helmet()); // Adds security headers
