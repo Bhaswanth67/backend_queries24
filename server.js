@@ -10,37 +10,47 @@ const mongoURI = process.env.MONGODB_URI;
 
 // Check if the MongoDB URI is defined
 if (!mongoURI) {
-    console.error('MONGODB_URI environment variable is not defined.');
-    process.exit(1); // Exit the process with failure
+    console.error('Error: MONGODB_URI environment variable is not defined.');
+    process.exit(1); // Exit the process if MongoDB URI is not set
 }
 
 // Connect to MongoDB
 mongoose.connect(mongoURI, { useNewUrlParser: true, useUnifiedTopology: true })
-    .then(() => console.log('MongoDB connected'))
-    .catch(err => console.error('MongoDB connection error:', err));
+    .then(() => console.log('MongoDB connected successfully'))
+    .catch(err => {
+        console.error('MongoDB connection error:', err);
+        process.exit(1); // Exit the process if MongoDB connection fails
+    });
 
-// Middleware
+// Middleware for security and CORS
 app.use(helmet()); // Adds security headers
 app.use(cors()); // Enables Cross-Origin Resource Sharing
-app.use(express.json());
+app.use(express.json()); // Parses incoming JSON requests
 
-// Routes
+// Import routes
 const authRoutes = require('./routes/authRoutes');
 const queryRoutes = require('./routes/queryRoutes');
 const adminRoutes = require('./routes/adminRoutes');
 const userRoutes = require('./routes/userRoutes');
 
+// Use routes
 app.use('/api/auth', authRoutes);
 app.use('/api/queries', queryRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/user', userRoutes);
 
-// Error Handling Middleware
-app.use((err, req, res, next) => {
-    console.error(err.stack);
-    res.status(500).send('Something broke!');
+// Handle undefined routes
+app.use((req, res) => {
+    res.status(404).json({ message: 'Route not found' });
 });
 
+// Error handling middleware
+app.use((err, req, res, next) => {
+    console.error('Internal Server Error:', err.stack);
+    res.status(500).json({ message: 'Something went wrong on the server' });
+});
+
+// Start the server
 app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
 });
